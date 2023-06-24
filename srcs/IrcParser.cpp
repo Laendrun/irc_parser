@@ -6,7 +6,7 @@
 /*   By: saeby <saeby>                              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/16 14:07:01 by saeby             #+#    #+#             */
-/*   Updated: 2023/06/16 17:45:51 by saeby            ###   ########.fr       */
+/*   Updated: 2023/06/24 19:15:03 by saeby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,31 +22,41 @@ IrcParser::IrcParser(void) {}
 // <middle> ::= <Any *non-empty* sequence of octets not including SPACE or NUL or CR or LF, the first of which may not be ':'>
 // <trailing> ::= <Any, possibly *empty*, sequence of octets not including NUL or CR or LF>
 
-Request IrcParser::parse(std::string message)
+
+// should return a list of Request(s)
+std::vector<Request> IrcParser::parse(std::string message)
 {
-	std::cout << "Parsing: " << message << std::endl;
+	std::vector<Request>	ret_vec;
 
-	Request	req;
-	int		i = 0;
+	// split the request on /r/n and loop over the given number of messages
+	std::vector<std::string>	messages = this->split(message);
 
-	req.og = message;
-	if (message.back() == '\r')
-		message.erase(message.end() - 1);
-
-	if (message[i] == ' ' || !message[i])
+	for (unsigned int i = 0; i < messages.size(); i++)
 	{
-		req.valid = false;
-		return (req);
+		Request	req;
+		int		j = 0;
+
+		req.og = messages[i];
+		if (messages[i].back() == '\r')
+			messages[i].erase(messages[i].end() - 1);
+
+		if (messages[i][j] == ' ' || !messages[i][j])
+		{
+			req.valid = false;
+			ret_vec.push_back(req);
+			continue;
+		}
+
+		// prefix before cmd
+		if (messages[i][j] == ':')
+			messages[i] = this->_parsePrefix(messages[i], req);
+
+		messages[i] = this->_parseCmd(messages[i], req);
+		messages[i] = this->_parseParams(messages[i], req);
+		ret_vec.push_back(req);
 	}
 
-	// prefix before cmd
-	if (message[i] == ':')
-		message = this->_parsePrefix(message, req);
-	
-	message = this->_parseCmd(message, req);
-	message = this->_parseParams(message, req);
-
-	return (req);
+	return (ret_vec);
 }
 
 // <prefix> ::= <servername> | <nick> ['!' <user>] ['@'<host>]
@@ -106,4 +116,19 @@ std::string	IrcParser::_parseParams(std::string message, Request& req)
 	}
 
 	return (message);
+}
+
+std::vector<std::string> IrcParser::split(std::string& og_message)
+{
+	std::vector<std::string>	ret_vec;
+	std::string					delim = "\r\n";
+	size_t						pos = 0;
+
+	std::string token;
+	while ((pos = og_message.find(delim)) != std::string::npos) {
+		token = og_message.substr(0, pos);
+		ret_vec.push_back(token);
+		og_message.erase(0, pos + delim.length());
+	}
+	return (ret_vec);
 }

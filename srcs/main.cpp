@@ -6,7 +6,7 @@
 /*   By: saeby <saeby>                              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/16 14:17:32 by saeby             #+#    #+#             */
-/*   Updated: 2023/06/16 17:44:02 by saeby            ###   ########.fr       */
+/*   Updated: 2023/06/24 19:14:40 by saeby            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,17 +14,16 @@
 
 int main(void)
 {
-	IrcParser	parser;
-	Request		req;
+	IrcParser				parser;
+	std::vector<Request>	reqs;
 
-	// req = parser.parse(":laendrun!laendrun@localhost JOIN #bar,#foo another param :some trailing action going on\r");
-	// req = parser.parse("JOIN #bar maybe :trailing action\r");
-	req = parser.parse("USER amy * * :Amy Pond");
-	
-	if (req.valid)
-		std::cout << req << std::endl;
-	else
-		std::cerr << "Invalid request" << std::endl;
+	// req = parser.parse(":laendrun!laendrun@localhost JOIN #bar,#foo another param :some trailing action going on\r\n");
+	// req = parser.parse("JOIN #bar maybe :trailing action\r\n");
+	// reqs = parser.parse("USER amy * * :Amy Pond\r\n");
+	reqs = parser.parse("CAP LS\r\nNICK laendrun\r\nUSER laendrun laendrun localhost :Simon Aeby\r\n");
+
+	for (unsigned int i = 0; i < reqs.size(); i++)
+		std::cout << reqs[i] << std::endl;
 
 }
 
